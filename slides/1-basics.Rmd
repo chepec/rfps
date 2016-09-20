@@ -1,0 +1,825 @@
+---
+title: "R for physical scientists<br>1: Introduction to R"
+author: "Matt Lacey and Taha Ahmed"
+output: 
+  revealjs::revealjs_presentation:
+    css: theme.css
+    center: true
+    transition: slide
+    highlight: tango
+---
+
+```{r, echo = F}
+library(knitr)
+library(magrittr)
+```
+
+# What is R?
+
+##
+
+> R is an integrated suite of software facilities for data manipulation, calculation and graphical display.
+
+- Developed at University of Auckland, NZ from 1992 - version 1.0 released in 2000
+- Developed by statisticians for statisticians, now widely used in other areas, e.g. data mining
+- Interpreted language - no compiling of code
+- A true programming language - much of R is written in R, and functionality is extended through add-on packages (>9000 currently exist at the Comprehensive R Archive Network, CRAN)
+
+
+## Advantages
+
+- Free and open source
+- Cross-platform
+- RStudio (also free!)
+- Excellent package system and community support
+- Plays well with other software - both importing and exporting
+- Excellent capabilities for reproducible research
+
+## Disadvantages
+
+- Syntax can seem strange to those already familiar with other languages, learning curve might be steep
+- Official documentation is often difficult to understand
+- Error messages sometimes vague and/or unhelpful
+- Speed and memory management is a weakness - but only an issue if working with large datasets, and is largely tackled by various add-on packages!
+
+## Demonstration
+
+R can make complex data analysis very fast. 
+
+```{r, echo = F, message = F}
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(tidyr)
+```
+
+With R, we can take a complex raw file (the full set has 104,875 lines)...
+
+```{r, echo = F}
+cat(readLines("assets/gridwatch-2015.csv", n = 10), sep = "\n")
+```
+
+##
+
+Import it with one line of code:
+
+```{r, eval = F}
+gridwatch <- read.csv("http://lacey.se/dl/gridwatch-2015.csv", header = TRUE)
+```
+
+```{r, echo = F}
+gridwatch <- read.csv("assets/gridwatch-2015.csv", header = TRUE, stringsAsFactors = FALSE)
+```
+
+##
+
+Process it and analyse it in a few more lines...
+
+```{r}
+df <- gridwatch %>% 
+  mutate(timestamp = ymd_hms(.$timestamp), 
+         month = month(.$timestamp, label = TRUE)) %>%
+  gather(source, power, -timestamp, -demand, -frequency, -id, -month) %>%
+  group_by(source, month) %>%
+  summarise(mean_power = mean(power))
+```
+
+And make a plot in just a few more:
+
+```{r, eval = F}
+ggplot(df, aes(x = month, y = mean_power/1000)) +
+  geom_bar(aes(fill = source), stat = "identity") +
+  ylab("mean power / GW") +
+  ggtitle("UK grid 2015: mean power generation")
+```
+
+##
+
+```{r, echo = F, warning = F}
+ggplot(df, aes(x = month, y = mean_power/1000)) +
+  geom_bar(aes(fill = source), stat = "identity") +
+  ylab("mean power / GW") +
+  ggtitle("UK grid 2015: mean power generation")
+```
+
+```{r, echo = F}
+rm(list = c("df", "gridwatch"))
+```
+
+# About this course
+
+## What is the aim?
+
+- To give you an accessible, practical introduction to the R language and environment
+- To give a modern, up-to-date introduction to how to approach data analysis and visualisation with R's most useful add-on packages
+- To be challenging, relevant, and encourage good practice from the start
+- To give you enough of a grounding so that you can confidently start to use R for your own purposes, and to continue learning on your own
+
+
+# Get started
+
+##
+
+During this course you can follow the examples here with RStudio via our private server: [rfps.chepec.se](http://rfps.chepec.se)
+
+Get R for yourself at [r-project.org](http://www.r-project.org) and RStudio Desktop at [rstudio.com](http://www.rstudio.com)
+
+## RStudio
+
+![](images/RStudio-Screenshot.png)
+
+## RStudio shortcuts
+
+- **Tab** - Generic autocomplete - will suggest function or file names.
+- **Ctrl/Cmd + Up arrow** - Similar to above - but will suggest commands *you've typed before* (only works in console)
+- **Ctrl/Cmd + Enter** - executes selected code in the editor
+
+
+# Console
+
+## Interpreter
+
+R is an interpreted language. One of the console's most basic functions is as a calculator.
+
+```{r}
+2 + 2
+4 * 9
+(10^3.2 + 7) / 17
+```
+
+## Multi-line calculations
+
+If you don't close a set of brackets or leave an operator without a right-hand-side argument, the console will show a new line starting with `+`.
+
+R will only run the command when the expression is complete.
+
+
+# Objects and data types
+
+##
+
+Assign values to variables with `<-`
+
+```{r}
+a <- 5
+```
+
+`a` now appears in the workspace window. 
+
+##
+
+If you type the name of the variable, R will tell you what it is:
+
+```{r}
+a
+```
+
+`class()` tells you what sort of variable it is
+
+```{r}
+class(a)
+```
+
+Can do calculations on `numeric` variables:
+
+```{r}
+a + 7
+```
+
+##
+
+Variables can be character strings:
+
+```{r}
+b <- "hello"
+class(b)
+```
+
+or logical values:
+
+```{r}
+c <- TRUE
+class(c)
+```
+
+and many other things we'll find out about later...
+
+##
+
+You can't do calculations on character strings...
+
+```{r, error = TRUE}
+b
+b * 3
+```
+
+## Vectors
+
+A `vector` is a 1-dimensional array of values. Attach values together with `c()` (concatenate):
+
+```{r}
+d <- c(3, 4, 5)
+d
+```
+
+Functions such as maths operators will operate on every element in the vector individually:
+
+```{r}
+d * 3
+```
+
+##
+
+All elements in a vector must be of the same type. R will coerce them to the same type if they aren't:
+
+```{r}
+e <- c(3, "hello", TRUE)
+str(e)
+```
+
+Note: the `str()` function is useful for checking what information is stored in a variable.
+
+## Indexing
+
+Access specific elements in a vector with `[]`
+
+```{r}
+f <- c(2, 4, 7, 10, 23, 33, 49, 80)
+f[1]
+```
+
+Use `:` to specify a range
+
+```{r}
+f[3:6]
+```
+
+##
+
+`:` generates a sequence in steps of 1 or -1. Can be combined with `c()` to pick out whatever values you wish:
+
+```{r}
+c(1:3, 7)
+f[c(1:3, 7)]
+```
+
+Maybe you want to assign a range to a variable:
+
+```{r}
+range <- c(1:3, 7)
+f[range]
+```
+
+## Editing values
+
+Edit elements in place:
+
+```{r}
+f
+f[1] <- 15
+f
+```
+
+## Finding values
+
+`which()` returns the index/indices of an object matching a certain value or range.
+
+```{r}
+which(f == 15)
+which(f < 20)
+f[which(f < 20)]
+```
+
+## Matrices
+
+A `matrix` is a two-dimensional array:
+
+```{r}
+g <- matrix(c(1:6), nrow = 2)
+g
+class(g)
+```
+
+##
+
+Index matrices with `[row, column]`:
+
+```{r}
+g[2, 2]
+g[1:2, 2:3]
+```
+
+##
+
+Select entire rows:
+
+```{r}
+g[1, ]
+```
+
+```{r}
+g[, 3]
+```
+
+For most purposes, 2D data is most conveniently handled with `data.frame`s, which we will deal with later...
+
+Multi-dimensional arrays are possible with `array()`, but we won't go into that!
+
+## Lists
+
+A `list()` is a collection of other data structures. List elements don't have to be the same length, or the same type!
+
+```{r}
+h <- list(c(1:5), "hello", TRUE)
+str(h)
+```
+
+A `list` element can be anything, even another `list`...
+
+## Indexing lists
+
+`lists` are indexed with `[]` or `[[]]`. 
+
+```{r}
+h
+```
+
+##
+
+Using `[]` returns a `list` of the selected `list` elements:
+
+```{r}
+str(h[1])
+```
+
+whereas `[[]]` returns the element itself:
+
+```{r}
+str(h[[1]])
+h[[1]][3]
+```
+
+##
+
+You can't do calculations on lists directly, just on their elements:
+
+```{r, error = TRUE}
+h * 3
+h[1] * 3
+h[[1]] * 3
+```
+
+##
+
+`list` elements can have names:
+
+```{r}
+j <- list(
+  a = c(1:5), # Note the = sign!!
+  b = "hello",
+  c = TRUE
+)
+str(j)
+```
+
+And the elements can be addressed with `$`:
+
+```{r}
+j$a
+```
+
+## Removing variables
+
+Get a list of all variables in the current workspace with `ls()`
+
+```{r}
+ls()
+```
+
+Remove all variables with `rm()`:
+
+```{r, eval = F}
+rm(list = ls())
+```
+
+Remove a single variable (e.g. `a`) with:
+
+```{r}
+rm(a)
+```
+
+```{r, echo = F}
+rm(list = ls())
+```
+
+## Exercise
+
+Almost anything in R can be assigned to a variable. Try assigning some variables, and doing calculations on them. Here are some self-explanatory maths functions to try:
+
+- `log()`, `log10()`, `log2()`, `exp()`, `sqrt()`, `cos()`, `sin()`, `tan()`, `acos()`, `asin()`, `atan()`
+
+Maybe try out `seq()` for making sequences, e.g.
+
+```{r}
+seq(from = 1, to = 30, by = 3)
+```
+
+
+# Functions
+
+##
+
+We've already seen a few: `class()`, `str()`, etc.
+
+A function does a particular job with the *arguments* it is given. 
+
+For example, `rnorm()` generates random numbers with a normal distribution. `args(fun)` is a function which returns the arguments of a function with the name `fun`
+
+```{r}
+args(rnorm)
+```
+
+Arguments with specified values are defaults.
+
+##
+
+```{r}
+a <- rnorm(100)
+head(a, 5) # head(a, n) returns the first n values of a
+mean(a) # requires only one argument, but takes options
+```
+
+##
+
+Functions can be nested:
+
+```{r}
+# plot a histogram for 100,000 random numbers mean 25 and s.d. 3
+hist(rnorm(1E5, mean = 25, sd = 3))
+```
+
+##
+
+R has many built in functions, especially for statistical purposes:
+
+```{r}
+summary(a)
+```
+
+## Help
+
+Use `?` to see documentation for any given function.
+
+```{r}
+?rnorm
+```
+
+## `example()`
+
+Use `example()` to run the examples of the function described in the documentation:
+
+```{r}
+example(mean)
+```
+
+
+# Installing packages
+
+## What are packages?
+
+Packages are written by other users which add new functionality to R.
+
+They can be simply functions of other R functions, modified or combined to do some particular job, such as a particular analysis...
+
+...or they can add new capability entirely - providing functions written in another language which manipulate objects in R.
+
+
+##
+
+Add-on packages are most conveniently installed from a CRAN mirror with `install.packages("packagename")`
+
+```{r, eval = F}
+install.packages("readxl")
+```
+
+tip: you can check if a package is already installed with:
+
+```{r}
+"readxl" %in% installed.packages()
+```
+
+## Loading packages
+
+To load a package so you can use the functions the package provides, use `library()`:
+
+```{r}
+library(readxl)
+```
+
+## Exercise!
+
+Check that the package `ggplot2` is installed in the system. If it's not, install it.
+
+## Solution
+
+```{r}
+"ggplot2" %in% installed.packages()
+```
+
+if `FALSE`...
+
+```{r, eval = F}
+install.packages("ggplot2")
+```
+
+##
+
+We'll come back to using this package in a bit!
+
+
+
+# Importing and checking data
+
+## `read.table`
+
+"Base" R contains a function for reading in data from standard text files, `read.table`. But it has quite a lot of arguments:
+
+```{r}
+args(read.table)
+```
+
+## `read.csv` and `read.delim`
+
+Simplified functions are available:
+
+- `read.csv()` for *comma separated value* files (.csv)
+- `read.delim()` for *tab delimited* files
+
+Both these functions assume the use of comma separation and decimal points, i.e., values written as `1.11,2.04,3.14` etc.
+
+Alternative functions exist for the continental European convention, i.e., `1,11;2,04;3,14`, namely `read.csv2()` and `read.delim2()`
+
+##
+
+If you look at the arguments for `read.csv()`, for example:
+
+```{r}
+args(read.csv)
+```
+
+You can see that 
+
+```{r, eval = F}
+read.csv2(x)
+```
+
+is equivalent to 
+
+```{r, eval = F}
+read.csv(x, sep = ";", dec = ",")
+```
+
+
+## Exercise!
+
+There is a built-in dataset in R called `mtcars`.
+
+```{r}
+str(mtcars)
+```
+
+Look at the help file for `write.table()`. 
+
+Write two lines of code: one to export `mtcars` to a tab-delimited file called `mtcars.txt`; and one to reimport the `mtcars.txt` file to a new variable called `df`.
+
+## Solution!
+
+Your code should look something like this:
+
+```{r, eval = F}
+write.table(mtcars, "mtcars.txt", sep = "\t")
+df <- read.delim("mtcars.txt")
+```
+
+Tip: don't call your data `data` - it's already the name of a function!
+
+## Exercise again!
+
+Type these commands:
+
+```{r, eval = F}
+library(readxl)
+download.file("http://lacey.se/dl/rfps-datasets1.xlsx", "rfps-datasets1.xlsx", "curl")
+```
+
+Look in the help files for the functions `excel_sheets()` and `read_excel()` from the `readxl` package. Find out what spreadsheets are in the file you've downloaded, and import them!
+
+## Solution
+
+For example:
+
+```{r}
+excel_sheets("rfps-datasets1.xlsx")
+sheet1 <- read_excel("rfps-datasets1.xlsx", 1)
+sheet2 <- read_excel("rfps-datasets1.xlsx", "iris")
+```
+
+# Data frames
+
+##
+
+`read.table` and its related functions create a `data.frame`, which is essentially a list underneath but with some of the properties of matrices:
+
+- all columns have to be the same length
+- columns can be of different data types, but all elements in a column must be the same type
+- you can index specific rows and columns with `[row, column]`
+- you can index specific columns with `$`
+
+## Looking into data frames
+
+Let's try some things with the data frame `mtcars` we've already looked at. We can look at the first 5 rows...
+
+```{r}
+head(mtcars, 5)
+```
+
+...or the last 5...
+
+```{r}
+tail(mtcars, 5)
+```
+
+##
+
+What are the column names and row names?
+
+```{r}
+colnames(mtcars)
+rownames(mtcars)
+```
+
+##
+
+Select rows and columns in the same way you would with matrices:
+
+```{r}
+mtcars[3, ]
+mtcars[, 5]
+```
+
+##
+
+Or by name!
+
+```{r}
+mtcars["Toyota Corolla", ]
+mtcars[, "disp"]
+```
+
+##
+
+More conveniently, you can address columns with `$`
+
+```{r}
+mtcars$disp
+```
+
+## Quick (and tough) test!
+
+`identical(x, y)` checks to see if elements `x` and `y` are identical to each other. Why is:
+
+```{r}
+identical(mtcars[["disp"]], mtcars["disp"])
+```
+
+but
+
+```{r}
+identical(mtcars[["disp"]], mtcars[, "disp"])
+```
+
+?
+
+## Answer...
+
+`data.frame`s are basically `list`s
+
+```{r}
+str(mtcars[["disp"]])
+str(mtcars["disp"])
+```
+
+But share properties of matrices.
+
+```{r}
+str(mtcars[, "disp"])
+```
+
+The `,` matters!
+
+##
+
+Make new data frames in the same way you would with a list:
+
+```{r}
+df2 <- data.frame(
+  a = rnorm(50),
+  b = rnorm(50),
+  c = rnorm(50)
+)
+
+str(df2)
+```
+
+##
+
+You can add new columns, as long as they are vectors of the same length as the data frame - for example, if I want to convert US mpg into l/100 km:
+
+```{r}
+mtcars2 <- mtcars
+mtcars2$lp100km <- 235.2 / mtcars2$mpg
+head(mtcars2)
+```
+
+##
+
+`cbind()` can be used to bind data.frames or vectors together by column; `rbind()` can bind data.frames, vectors or lists by row:
+
+```{r}
+nrow(mtcars2)
+r_num <- rnorm(nrow(mtcars2))
+mtcars3 <- cbind(mtcars2, r_num)
+head(mtcars3)
+```
+
+Just make sure all the columns are the same length!
+
+# Let's make a plot!
+
+## `ggplot2`
+
+> `ggplot2` is a plotting system for R, based on the grammar of graphics, which tries to take the good parts of `base` and `lattice` graphics and none of the bad parts. It takes care of many of the fiddly details that make plotting a hassle (like drawing legends) as well as providing a powerful model of graphics that makes it easy to produce complex multi-layered graphics.
+
+##
+
+```{r}
+library(ggplot2)
+```
+
+##
+
+`ggplot2` contains a basic function `qplot()`, which can most simply be used with the form `qplot(x, y, data)`:
+
+```{r, fig.width = 5, fig.height = 3}
+qplot(disp, mpg, data = mtcars)
+```
+
+##
+
+`qplot()` is a convenient "wrapper" for the main function , `ggplot()`. The same plot can be generated with:
+
+```{r, fig.width = 5, fig.height = 3}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point()
+```
+
+##
+
+```{r}
+args(ggplot)
+```
+
+`aes()` specifies "aesthetics" (e.g., `x` and `y` values, data point colour, size, etc) to be mapped to variables. By default, specified variables are taken as columns in `data`.
+
+##
+
+Aesthetics which are specified in the top `ggplot()` function are passed down to all additional arguments.
+
+Link together arguments with `+`:
+
+```{r, fig.width = 5, fig.height = 3}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point(aes(color = hp)) +
+  xlab("displacement / cu. in.") +
+  ylab("miles/US gallon") +
+  ggtitle("A simple plot!")
+```
+
+## Try it out!
+
+Look in the datasets `mtcars` and `iris` (the latter you haven't seen yet). Try out `qplot()` and `ggplot()` with these datasets however you like and see what happens.
+
+## That's all for today!
+
+Useful functions:
+
+- `class()`, `str()`
+- `<-`, `c()`, `list()`, `data.frame()`, `rm()`
+- `[`, `[[`, `$`, `which()`, `summary()`
+- `args()`, `?`, `example()`
+- `install.packages()`, `library()`
+- `read.table()`, `read.csv()`, `read.delim()`, `write.table()`
+- `head()`, `tail()`, `colnames()`, `rownames()`
+- `qplot()`, `ggplot()`
+
+(and get R at [r-project.org](http://www.r-project.org) and RStudio at [rstudio.com](http://www.rstudio.com))

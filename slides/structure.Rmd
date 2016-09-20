@@ -1,0 +1,120 @@
+---
+title: "R for physical scientists - suggestions for topics"
+author: "Matt Lacey and Taha Ahmed"
+output: 
+  revealjs::revealjs_presentation:
+    css: theme.css
+    center: true
+    transition: slide
+    highlight: tango
+---
+
+## Basics
+
+- What is R
+- What are its strengths
+    - Made for importing data, doing analysis and making graphs 
+    - Extensibility and package system
+    - Community support (StackOverflow, etc)
+- The environment (R, RStudio)
+- `?`
+   
+## Interpreter
+
+Some examples, like:
+
+```{r}
+2 + 2
+```
+
+## Objects
+
+- `<-`
+- Vectors, matrices, data frames etc
+    - `str` and `class` functions
+- Indexing
+    - `[]`, `$` etc
+
+## Functions
+
+- Some important ones, like `c`, `head`, `tail`, etc
+- Some little hints at what R is actually doing, like showing how
+
+```{r}
+2 + 3
+```
+
+is the same as
+
+```{r}
+`+`(2, 3)
+```
+
+- How to write a simple function which takes multiple arguments
+
+## `apply` functions
+
+- At least `sapply` and `lapply`
+- Can mention `for` loops but `lapply` should be the first option. `while` also useful
+
+## ggplot
+
+How to make a simple plot
+
+```{r, eval = F}
+ggplot()
+```
+
+How to add data
+
+```{r, eval = F}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point()
+```
+
+How to tweak it however you like it
+
+```{r, eval = F}
+ggplot(mtcars, aes(x = disp, y = mpg)) +
+  geom_point(aes(color = cyl), size = 2) +
+  facet_wrap( ~ cyl) + 
+  xlab ...
+  ...
+```
+
+## Transforming data on plots
+
+```{r, echo = F}
+library(ggplot2)
+```
+
+```{r, fig.height = 3, fig.width = 5}
+ggplot(mtcars, aes(x = disp, y = 282.5/mpg)) +
+  geom_point(aes(color = factor(cyl))) +
+  ylab("l/100km")
+```
+
+## Importing data
+
+- `read.table`, `read.delim`, `read.csv`
+- `readxl` package
+
+## Manipulating data
+
+- `dplyr`: `filter` and `select` especially
+
+## Other important packages
+
+- `reshape2` (`melt` and `cast`)
+- `lubridate`
+- `magrittr`
+- `scales` and `grid` for ggplots
+
+and possibly some others but these are the ones I use and am mostly familiar with. Could mention that packages exist for mix in code from C++, Python, MATLAB, etc.
+
+## Reporting
+
+- Sweave and knitr (probably the latter mostly)
+- R Markdown
+- R Notebooks!!
+- Shiny??

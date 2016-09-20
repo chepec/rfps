@@ -1,0 +1,382 @@
+---
+title: "R for physical scientists"
+author: "Matt Lacey and Taha Ahmed"
+output: 
+  revealjs::revealjs_presentation:
+    css: theme.css
+    center: true
+    transition: slide
+    highlight: tango
+---
+  
+```{r, echo = F}
+library(knitr)
+library(magrittr)
+```
+
+# 2: Data manipulation and visualisation
+
+## Packages we'll use today!
+
+`ggplot2`, `dplyr`, `tidyr`
+
+Let's load them:
+
+```{r}
+library(tidyverse)
+```
+
+## `dplyr`
+
+- A fast, consistent tool for working with data frame like objects, both in memory and out of memory.
+- Identify the most important data manipulation tools needed for data analysis and make them easy to use from R.
+- Provide blazing fast performance for in-memory data by writing key pieces in C++.
+- Use the same interface to work with data no matter where it's stored, whether in a data frame, a data table or database.
+
+## `tidyr`
+
+- Provides functions for "tidying" data - `gather()` and `spread()`
+
+# Introduction to `dplyr`
+
+##
+
+`dplyr` provides several functions for manipulating data frames, e.g.,
+
+`select()`, `filter()`, `mutate()`, `rename()`
+
+##
+
+Remember the `mtcars` dataset from yesterday?
+
+```{r}
+str(mtcars)
+```
+
+##
+
+`select()` selects specific columns from a data frame:
+
+```{r}
+mtcars2 <- select(mtcars, mpg, cyl, disp)
+str(mtcars2)
+```
+
+##
+
+`select()` can also be used to drop specific columns, with `-`:
+
+```{r}
+mtcars3 <- select(mtcars, -am, -gear, -carb)
+str(mtcars3)
+```
+
+##
+
+`rename()` renames specified columns. Use `rename(data, newname = oldname)`. You can rename as many columns as you want in one `rename()` call.
+
+```{r}
+mtcars4 <- rename(mtcars, ncyl = cyl, weight = wt)
+str(mtcars4)
+```
+
+##
+
+`filter()` selects rows matching given conditions.
+
+```{r}
+mtcars5 <- filter(mtcars, cyl == 6, am == 1)
+mtcars5
+```
+
+##
+
+Multiple conditions can be specified for the same variable.
+
+```{r}
+mtcars6 <- filter(mtcars, hp > 100, hp < 200)
+str(mtcars6)
+```
+
+## Comparison operators
+
+- `x < y` - x is less than y
+- `x > y` - x is greater than y
+- `x <= y` - x is less than or equal to y
+- `x >= y` - x is greater than or equal to y
+- `x == y` - x is equal to y
+- `x != y` - x is not equal to y
+
+## Value matching
+
+For matching values to a vector, use `%in%`:
+
+```{r}
+mtcars7 <- filter(mtcars, cyl %in% c(6, 8))
+str(mtcars7)
+```
+
+##
+
+`mutate()` adds new columns, preserving all previous ones.
+
+```{r}
+mtcars8 <- mutate(mtcars, displ_l = disp / 61.0237)
+str(mtcars8)
+```
+
+##
+
+Note: all `dplyr` methods ignore row names in data frames (on purpose). If you have them and want to keep them, they have to be converted to an explicit variable. `dplyr` has a function for this, `rownames_to_column`:
+
+```{r}
+has_rownames(mtcars) # check if rownames exist
+mtcars9 <- rownames_to_column(mtcars, "name")
+str(mtcars9)
+```
+
+## Exercise!
+
+Look at the `iris` dataset (e.g., `View(iris)`).
+
+Use `filter()` to make a new data frame `df`, for only the "setosa" species with a sepal length between 5 and 6.5 cm.
+
+## Solution!
+
+Your code should look something like this:
+
+```{r}
+df <- filter(iris, Species == "setosa", Sepal.Length >= 5, Sepal.Length <= 6.5)
+head(df)
+```
+
+##
+
+# Let's practice `ggplot()`...
+
+## The `diamonds` dataset
+
+There is a built-in dataset in the `ggplot2` packages called `diamonds`.
+
+```{r}
+str(diamonds)
+```
+
+(Try also `?diamonds` to find out more.)
+
+##
+
+```{r, fig.width = 6, fig.height = 4}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point()
+```
+
+##
+
+Use `aes()` to map properties to variables:
+
+```{r, fig.width = 6, fig.height = 4}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut)) # <<----
+```
+
+##
+
+Properties not mapped to variables should not be inside `aes()`
+
+```{r, fig.width = 6, fig.height = 4}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6) # <<----
+```
+
+## variable `<-` plot
+
+```{r, fig.width = 6, fig.height = 4}
+p <- ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6) # <<----
+
+print(p)
+```
+
+## adding layers
+
+```{r, fig.width = 6, fig.height = 4}
+p <- p + ggtitle("diamonds")
+
+print(p)
+```
+
+## Scaling
+
+There are a very large number of functions for modifying properties mapped to variables, such as `x`, `y`, `size`, `shape`, `alpha`, `color`, `fill`, etc.
+
+They all begin with `scale_`...
+
+##
+
+Scaling axes can be done with, for example, `scale_x_continuous()` and `scale_y_continuous()`, which removes values outside the range...
+
+```{r, fig.width = 6, fig.height = 4, warning = F}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6) +
+  scale_x_continuous(limits = c(0, 3)) + # <<----
+  scale_y_continuous(limits = c(0, 10000)) # <<----
+```
+
+##
+
+another alternative is to use or `coord_cartesian()`, which effectively rescales the plot window - this can be useful sometimes:
+
+```{r, fig.width = 6, fig.height = 4}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6) +
+  coord_cartesian(xlim = c(0, 3), ylim = c(0, 10000)) # <<----
+```
+
+##
+
+There are useful functions for changing colour schemes based on specially suited colour palettes.
+
+- `scale_color_brewer()` and `scale_fill_brewer()` for **discrete** data
+- `scale_color_distiller() and `scale_fill_distiller()` for **continuous** data
+
+##
+
+```{r, fig.width = 6, fig.height = 4, warning = F}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6) +
+  scale_color_brewer(palette = "Set1") # <<----
+```
+
+##
+
+```{r, fig.width = 6, fig.height = 4, warning = F}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = x * y), size = 2, alpha = 0.6) +
+  scale_color_distiller(palette = "YlGnBu", limits = c(10, 120)) # <<----
+```
+
+##
+
+... and many more possibilities
+
+- `scale_x_log10()`
+- `scale_size_discrete()`
+- `scale_fill_continuous()`
+- `scale_alpha_manual()`
+
+and so on...
+
+I recommend reading the `ggplot2` documentation to learn more!
+
+## Labelling
+
+Use `xlab()` and `ylab()` to label axes:
+
+```{r, fig.width = 6, fig.height = 4, warning = F}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6) +
+  scale_x_continuous(limits = c(0, 3)) + 
+  scale_y_continuous(limits = c(0, 10000)) +
+  xlab("weight / carats") + # <<----
+  ylab("price / USD") # <<----
+```
+
+## Facetting
+
+```{r, fig.width = 6, fig.height = 4}
+diamonds2 <- filter(diamonds, cut %in% c("Premium", "Ideal"), 
+                    clarity %in% c("VVS1", "VVS2", "IF"))
+
+p2 <- ggplot(diamonds2, aes(x = carat, y = price)) +
+  geom_point(aes(color = color), size = 2, alpha = 0.5)
+
+print(p2)
+```
+
+##
+
+Create panels for each value of a variable with `facet_grid(rows ~ columns)`
+
+```{r, fig.width = 6, fig.height = 4}
+p2 + facet_grid(. ~ cut)
+```
+
+##
+
+```{r, fig.width = 7, fig.height = 4.8}
+p2 + facet_grid(clarity ~ cut)
+```
+
+##
+
+Use `facet_wrap()` if you have a 1-dimensional sequence of panels and want to wrap it into a fixed number of rows or columns:
+
+```{r, fig.width = 7, fig.height = 4.8}
+p2 + facet_wrap( ~ color, ncol = 4)
+```
+
+
+# `dplyr -> ggplot`
+
+## `%>%`
+
+`%>%` is the "pipe" operator.
+
+It comes from the `magrittr` package and is loaded automatically along with `dplyr`.
+
+##
+
+`%>%` "pipes" an object to the first argument of a function, i.e:
+
+```{r, eval = F}
+x %>% f(y, z)
+```
+
+is the same as:
+
+```{r, eval = F}
+f(x, y, z)
+```
+
+This creates code which is easily read left-to-right.
+
+##
+
+For example:
+
+```{r, fig.width = 6, fig.height = 4}
+diamonds %>%
+  ggplot(aes(x = carat, y = price)) +
+    geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6)
+```
+
+##
+
+```{r, fig.width = 6, fig.height = 4}
+filter(diamonds, cut %in% c("Premium", "Ideal")) %>%
+  ggplot(aes(x = carat, y = price)) +
+    geom_point(aes(color = cut), size = 2, shape = 21, alpha = 0.6)
+```
+
+##
+
+In cases where you don't want the object on the left hand side to be the first argument in the function, use the dot (`.`) as placeholder:
+
+```{r, eval = F}
+y %>% f(x, ., z)
+```
+
+is equivalent to `f(x, y, z)`
+
+# More advanced data manipulation
+
+##
+
+`group_by` is a `dplyr` function that converts a data frame into a grouped table, with groups defined by variables in the dataset.
+
+```{r}
+grouped_iris <- iris %>%
+    group_by(Species)
+str(grouped_iris)
+```
