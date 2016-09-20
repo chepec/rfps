@@ -2,6 +2,6 @@
 *.fdb*
 *.fls
 *.log
-*.pdf
-*.png
 *.xlsx
+# restrict public distribution of UU logotype
+UU_logo*
