@@ -1,6 +1,6 @@
 # Resources
 
-
+- [A curated list of awesome R packages and tools](https://github.com/qinwf/awesome-R)
 - [The official (CRAN) R introduction](http://cran.r-project.org/doc/manuals/R-intro.html)
 - http://adolfoalvarez.cl/the-hitchhikers-guide-to-the-hadleyverse/
 - https://leanpub.com/hitchhikers_ggplot2
