@@ -13,7 +13,6 @@
 - http://www.cookbook-r.com
 - http://www.rstudio.com/resources/cheatsheets/
 - [R Weekly](https://rweekly.org/)
-- [Awesome R curated list](https://github.com/qinwf/awesome-R)
 - [RDocumentation](http://www.rdocumentation.org/)
 - [StackOverflow R questions](http://stackoverflow.com/questions/tagged/r)
 
@@ -200,6 +199,7 @@
 - [Using Git with Rstudio, Jenny Bryan](https://jennybc.github.io/2014-05-12-ubc/ubc-r/session03_git.html)
 - [Commit Often, Perfect Later, Publish Once: Git Best Practices](https://sethrobertson.github.io/GitBestPractices/)
 - [Why you need version control](http://ellisp.github.io/blog/2016/09/16/version-control)
+- [Git and GitHub, Wickham](http://r-pkgs.had.co.nz/git.html)
 - [Learn enough command line to be dangerous (tutorial by Michael Hartl)](https://www.learnenough.com/command-line-tutorial), [HN comments](https://news.ycombinator.com/item?id=10245033)
 - [The art of command line](https://github.com/jlevy/the-art-of-command-line), [HN comments](https://news.ycombinator.com/item?id=9720813)
 
