@@ -1,14 +1,14 @@
 ---
 title: "R for physical scientists"
 author: "Taha Ahmed and Matt Lacey"
-output: 
+output:
   revealjs::revealjs_presentation:
     css: theme.css
     center: true
     transition: slide
     highlight: tango
 ---
-  
+
 ```{r, echo = F, message = F}
 library(tidyverse)
 ```
@@ -33,12 +33,12 @@ Problem: computers wrangle the data, but also obscure it. It's practically impos
 Even if you are not a computational scientist, reproducibility cannot be achieved without sharing both data and code (in addition to the manuscript).
 
 
-## 
+##
 
 <h4>Open formats and free software are a win/win</h4>
 
 
-## 
+##
 
 *This all sounds very tedious and time-consuming.*
 
@@ -46,11 +46,11 @@ Even if you are not a computational scientist, reproducibility cannot be achieve
 
 ## The good news: you already have the tools to do it!
 
-"If we imagine the learning curve is a fence, you already have one leg over"
+"If we imagine the learning curve is a fence, you already have one leg over. Just keep going."
 
 
 
-## Read more about reproducibility 
+## Read more about reproducibility
 
 
 - ["Good Enough Practices for Scientific Computing", by Wilson, Bryan, Cranston, Kitzes, Nederbragt, and Teal (2016)](http://swcarpentry.github.io/good-enough-practices-in-scientific-computing/)
@@ -66,7 +66,9 @@ Even if you are not a computational scientist, reproducibility cannot be achieve
 
 ## These slides are online
 
-[](https://github.com/chepec/rfps)
+**[https://github.com/chepec/rfps](http://htmlpreview.github.io/?https://github.com/chepec/rfps/blob/master/slides/4-reports.html)**
+
+
 
 
 ## Create an RStudio project
@@ -77,7 +79,7 @@ Even if you are not a computational scientist, reproducibility cannot be achieve
 Help: https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects
 
 
-## Create an R Markdown report 
+## Create an R Markdown report
 
 Using R Markdown we can combine manuscript (formatted using R Markdown), data and code (the latter two handled by R) in one single document ("report").
 
@@ -85,15 +87,17 @@ Use your own data or some built-in dataset.
 
 Tip: you'll need `library(knitr)`
 
-Help: http://rmarkdown.rstudio.com/lesson-1.html
+Help:
+http://rmarkdown.rstudio.com/lesson-1.html
+http://yihui.name/knitr/demos/
 
 
 
-## 
+##
 
-Put text (headers, bullet points, etc. in it - feel free to experiment!), import data and do something with it (at least create **one plot and one table**).
+Put text (feel free to experiment with headers, bullet points, cursive, boldface, etc.), import data and do something with it (at least create **one plot and one table**).
 
-For tables, use knitr's `kable()` function to output a dataframe as a Markdown table.
+For tables, we suggest using knitr's `kable()` function to output a dataframe as a Markdown table.
 
 
 
@@ -104,6 +108,7 @@ For tables, use knitr's `kable()` function to output a dataframe as a Markdown t
 - MS Word
 
 And explore the knitting "Output options" for the different formats.
+(These conversions are done using **pandoc**).
 
 
 ## Put your project under version control
@@ -112,7 +117,16 @@ Use RStudio's built-in GUI for Git.
 
 - [Using Git with RStudio (short guide)](https://jennybc.github.io/2014-05-12-ubc/ubc-r/session03_git.html)
 - [Why you need version control (the why)](http://ellisp.github.io/blog/2016/09/16/version-control)
-- [Happy Git and GitHub for the useR](http://happygitwithr.com/)
+- [Happy Git and GitHub for the useR (online book)](http://happygitwithr.com/)
+
+
+## For the advanced user
+
+- It's perfectly possible to combine `R` and `LaTeX` using `knitr`
+- You can include plots as png/pdf, or for complete integration with `LaTeX`: as TikZ files (renders the plot using the same font and so on as the rest of the document).
+- Git is a *distributed* version control software, so it's entirely possible to write a manuscript/code collaboratively with others while keeping track of who did what.
+
+Feel free to ask questions!
 
 
 
@@ -120,30 +134,27 @@ Use RStudio's built-in GUI for Git.
 
 
 
-
+# R community resources
 
 ## Use the community to find help
 
-- Hone your Google-fu!
+- Hone your Google-fu! Always due your due diligence first.
 - http://stackoverflow.com/questions/tagged/r
 - http://stats.stackexchange.com
 
 
-## 
+##
 
-If you can't resolve your issue after googling, use the most suitable forum to ask a question yourself. 
+- Matt Lacey: [lacey.se](http://lacey.se/), [github](https://github.com/mjlacey), @[mjlacey](https://twitter.com/mjlacey)
+- Taha Ahmed: [chepec.se](https://chepec.se), [github](https://github.com/chepec), @[solarchemist](https://twitter.com/solarchemist)
 
-Remember, always state 
+Check out Matt's [post (from yesterday) on dual y-axis in ggplot2](http://lacey.se/2016/09/21/a-half-solution-for-multiple-y-axes-with-ggplot/).
 
 
 
 
-# That's all for today!
 
-## Key concepts:
 
-- 
-- 
-- 
-- 
-- 
+
+
+# Be a better scientist with open formats and free software!
