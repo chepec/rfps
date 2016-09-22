@@ -1,4 +1,5 @@
-> IP address: 130.238.10.31
+> 130.238.10.31
+
 
 
 ## User accounts for instructors
@@ -73,7 +74,7 @@ Rebooted the machine for the changes to take effect (reboot not strictly necessa
 ```
 $ sudo apt-get install apache2
 Reading package lists... Done
-Building dependency tree       
+Building dependency tree
 Reading state information... Done
 The following extra packages will be installed:
   apache2-bin apache2-data libapr1 libaprutil1 libaprutil1-dbd-sqlite3
@@ -251,8 +252,8 @@ R library paths:
 ```
 > .libPaths()
 [1] "/home/taha/R/x86_64-pc-linux-gnu-library/3.3"
-[2] "/usr/local/lib/R/site-library"               
-[3] "/usr/lib/R/site-library"                     
+[2] "/usr/local/lib/R/site-library"
+[3] "/usr/lib/R/site-library"
 [4] "/usr/lib/R/library"
 ```
 
@@ -266,7 +267,7 @@ install.packages("devtools", lib = .libPaths()[4])
 devtools::install_github("hadley/devtools")
 ```
 
-Installed `tidyverse`.
+Installed `tidyverse`, `knitr`.
 
 
 Installed Linux packages required by some of the above packages:
@@ -310,6 +311,27 @@ PATH=$PATH:/usr/local/texlive/2016/bin/x86_64-linux
 
 
 
+## Installing git
+
+```
+sudo apt-get install git-all
+```
+
+
+## Installing pandoc
+
+Ubuntu repos have pandoc version 1.12.2-1, which is quite old (from Dec 2013). So we'll install the latest deb file ourselves instead.
+
+```
+wget https://github.com/jgm/pandoc/releases/download/1.17.2/pandoc-1.17.2-1-amd64.deb
+sudo dpkg -i pandoc-1.17.2-1-amd64.deb
+```
+
+
+
+
+
+
 ## Installing Rstudio server
 
 ```
@@ -340,7 +362,7 @@ We'll leave the UID field left empty, GID field left empty, in GECOS we'll fill 
 
 > Well, `newusers` does not work. Apparently it has a [known bug in Ubuntu](https://bugs.launchpad.net/ubuntu/+source/shadow/+bug/1266675).
 
-We'll use this script (by Pavlin Mitev) instead.
+We'll use this script by Pavlin Mitev instead.
 
 ```
 #!/bin/sh
@@ -367,6 +389,7 @@ user="hasan"; PASS="ali"; setpass;
 user="hongji"; PASS="yan"; setpass;
 user="jose"; PASS="silva"; setpass;
 user="juan"; PASS="jaramillo"; setpass;
+user="lisa"; PASS="akerlund"; setpass;
 user="mia"; PASS="sterby"; setpass;
 user="oleksandr"; PASS="bilousov"; setpass;
 user="rasmus"; PASS="luthander"; setpass;
@@ -386,3 +409,126 @@ chmod +x participant_accounts.sh
 ```
 
 Worked like a charm!
+
+
+
+### A shared folder
+
+> Outline of Matt's idea: in each user home directory, create a folder called `share` or similar. Then create another folder outside everyone's home, and symlink each user's shared folder into that folder. Thus creating a globally shared space.
+
+For this to work, we're gonna need to
+
+- create a group (we'll call it `students`) and make all accounts members of it,
+- create a folder inside each user's home directory, and
+- make this folder owned by the `students` group. This folder must also be writable by the group, and additionally,
+- any files or folders created in it should inherit its group ownership (we'll set the sticky bit).
+
+
+In `/root/fill_group.sh`:
+
+```
+#!/bin/sh
+#
+# Name: fill_group.sh
+#
+# Usage:
+# fill_group.sh <group_name> <user1> <user2> ... <userN>
+#
+# Description:
+# add users to specific group passed as first parameter.
+# If the group doesn't exists add it to the system.
+set -eu
+
+# Exit if there is not at least 2 args (group,user1)
+if [ $# -lt 2  ]; then exit 5; fi
+
+group="${1}"; shift # extract group from arguments
+if ! egrep --quiet "^${group}:" /etc/group; then
+  sudo groupadd "${group}"
+fi
+
+for user in "${@}"; do
+    sudo usermod -a -G "${group}" "${user}"
+done
+```
+
+Add the participants and instructors to the `students` group:
+
+```
+./fill_group.sh students taha matt adriane andrea angeliki anna apurve arvid burak delphine dennis emilia fabian feres hasan hongji jose juan mia oleksandr rasmus reza ronnie sanea sankara serkan shuyi suvendu lisa
+```
+
+
+Next, to create a folder inside each user's home directory.
+
+We want to programmatically get a list of all user accounts of participants and instructors (excluding system accounts and such). This awk string does the trick:
+
+```
+awk -F':' '{ if ( $3 > 1000 && $3 < 1100 ) print $1 }' /etc/passwd
+```
+
+(larger than 1000 excludes the `ubuntu` account, and less than 1100 excludes the `nobody` account).
+
+Bash script for creating a directory in each user's home (`/root/create_homesharedfolders.sh`):
+
+```
+#!/bin/bash
+UHOME="/home"
+# get list of all users
+USERS="$(awk -F':' '{ if ( $3 > 1000 && $3 < 1100 ) print $1 }' /etc/passwd)"
+for u in $USERS
+do
+   thisuserhome="${UHOME}/${u}"
+   # check if the directory exists (it should)
+   if [ -d "$thisuserhome" ]; then
+      /bin/mkdir $thisuserhome/shared
+      # set the sticky bit so that all files and folders will inherit the group ownership
+      /bin/chown -R $(id -un $u):students "$thisuserhome/shared"
+      /bin/chmod -R g=rwx,o=rx,g+s "$thisuserhome/shared"
+   fi
+done
+```
+
+I'm not sure that the sticky bit really needs to be set for files (likely only necessary for folders), but it should work in either case.
+
+```
+chmod +x create_homesharedfolders.sh
+./create_homesharedfolders.sh
+```
+
+Now we'll create the global folder and symlink each user's `shared` folder into that.
+
+
+```
+# this is /root/create_symlinks.sh
+#!/bin/bash
+UHOME="/home"
+# get list of all users
+USERS="$(awk -F':' '{ if ( $3 > 1000 && $3 < 1100 ) print $1 }' /etc/passwd)"
+for u in $USERS; do
+   /bin/ln -s /home/${u}/shared/ /media/students/${u}
+done
+```
+
+
+```
+mkdir /media/students
+chmod +x create_symlinks.sh
+./create_symlinks.sh
+```
+
+I think I'll also relax the ownership of `/media/students`:
+
+```
+chown root:students /media/students/
+chmod g+w /media/students
+```
+
+
+
+
+
+## Refs
+
+- http://www.cyberciti.biz/tips/linux-unix-shell-batch-copy.html
+- http://unix.stackexchange.com/a/248428
